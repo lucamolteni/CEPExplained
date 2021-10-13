@@ -73,6 +73,9 @@ public class RuleTest {
 
         session.insert(hb2);
 
+        Thread.sleep(3000);
+
+
         session.fireAllRules();
 
 
