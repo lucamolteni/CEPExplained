@@ -18,8 +18,12 @@ package kie.live;
 import static org.junit.Assert.*;
 
 import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -44,45 +48,27 @@ public class RuleTest {
     static final Logger LOG = LoggerFactory.getLogger(RuleTest.class);
 
     @Test
-    public void test() throws InterruptedException {
+    public void testUsingSystemClock() throws InterruptedException {
         KieServices kieServices = KieServices.Factory.get();
 
         KieContainer kContainer = kieServices.getKieClasspathContainer();
-
         KieBase kieBase = kContainer.getKieBase("CEPExplained");
-
         KieSession session = kieBase.newKieSession();
 
-        Set<String> check = new HashSet<>();
+        Deque<HeartBeat> check = new ArrayDeque<>();
         session.setGlobal("controlSet", check);
 
-        LOG.info("Now running data");
-
-
         HeartBeat hb1 = new HeartBeat();
-        hb1.setTs(Date.from(Instant.now()));
+        Date hb1Date = Date.from(Instant.now());
+        hb1.setTs(hb1Date);
 
         session.insert(hb1);
 
-        session.fireAllRules();
-
-        Thread.sleep(3000);
-
-        HeartBeat hb2 = new HeartBeat();
-        hb2.setTs(Date.from(Instant.now()));
-
-        session.insert(hb2);
-
-        Thread.sleep(3000);
-
+        // You shouldn't probably test like this
+        Thread.sleep(6000);
 
         session.fireAllRules();
 
-
-//        assertEquals("Size of object in Working Memory is 3", 3, session.getObjects().size());
-//        assertTrue("contains red", check.contains("red"));
-//        assertTrue("contains green", check.contains("green"));
-//        assertTrue("contains blue", check.contains("blue"));
-
+        assertEquals(hb1Date, check.pop().getTs());
     }
 }
