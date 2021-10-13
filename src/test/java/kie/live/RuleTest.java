@@ -17,6 +17,8 @@ package kie.live;
 
 import static org.junit.Assert.*;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -42,52 +44,42 @@ public class RuleTest {
     static final Logger LOG = LoggerFactory.getLogger(RuleTest.class);
 
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
         KieServices kieServices = KieServices.Factory.get();
 
         KieContainer kContainer = kieServices.getKieClasspathContainer();
-        Results verifyResults = kContainer.verify();
-        for (Message m : verifyResults.getMessages()) {
-            LOG.info("{}", m);
-        }
 
-        LOG.info("Creating kieBase");
-        KieBase kieBase = kContainer.getKieBase();
+        KieBase kieBase = kContainer.getKieBase("CEPExplained");
 
-        LOG.info("There should be rules: ");
-        for ( KiePackage kp : kieBase.getKiePackages() ) {
-            for (Rule rule : kp.getRules()) {
-                LOG.info("kp " + kp + " rule " + rule.getName());
-            }
-        }
-
-        LOG.info("Creating kieSession");
         KieSession session = kieBase.newKieSession();
 
-        LOG.info("Populating globals");
-        Set<String> check = new HashSet<String>();
+        Set<String> check = new HashSet<>();
         session.setGlobal("controlSet", check);
 
         LOG.info("Now running data");
 
-        Measurement mRed= new Measurement("color", "red");
-        session.insert(mRed);
+
+        HeartBeat hb1 = new HeartBeat();
+        hb1.setTs(Date.from(Instant.now()));
+
+        session.insert(hb1);
+
         session.fireAllRules();
 
-        Measurement mGreen= new Measurement("color", "green");
-        session.insert(mGreen);
+        Thread.sleep(3000);
+
+        HeartBeat hb2 = new HeartBeat();
+        hb2.setTs(Date.from(Instant.now()));
+
+        session.insert(hb2);
+
         session.fireAllRules();
 
-        Measurement mBlue= new Measurement("color", "blue");
-        session.insert(mBlue);
-        session.fireAllRules();
 
-        LOG.info("Final checks");
-
-        assertEquals("Size of object in Working Memory is 3", 3, session.getObjects().size());
-        assertTrue("contains red", check.contains("red"));
-        assertTrue("contains green", check.contains("green"));
-        assertTrue("contains blue", check.contains("blue"));
+//        assertEquals("Size of object in Working Memory is 3", 3, session.getObjects().size());
+//        assertTrue("contains red", check.contains("red"));
+//        assertTrue("contains green", check.contains("green"));
+//        assertTrue("contains blue", check.contains("blue"));
 
     }
 }

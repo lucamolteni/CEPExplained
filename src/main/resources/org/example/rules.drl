@@ -17,10 +17,12 @@ package kie.live;
 
 global java.util.Set controlSet;
 
-rule "will execute per each Measurement having ID color"
+rule "heartbeat rule"
 no-loop
 when
-	Measurement( id == "color", $colorVal : val )
+	$h : HeartBeat( $ts: ts)
+	not(HeartBeat( this != $h, this after[0s, 5s] $h))
 then
-	controlSet.add($colorVal);
+    System.out.println("Heartbeat not received in 5s after: " +  $ts);
+	controlSet.add($ts);
 end

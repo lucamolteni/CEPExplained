@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kmodule xmlns="http://www.drools.org/xsd/kmodule">
-  <!-- This is a minimal kmodule.xml. Ref Drools documentation, see http://docs.jboss.org/drools/release/7.59.0.Final/drools-docs/html_single/index.html#_creatingandbuildingakieproject -->
+  <kbase name="CEPExplained" eventProcessingMode="stream" packages="kie.live">
+  </kbase>
 </kmodule>
