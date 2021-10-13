@@ -80,7 +80,7 @@ public class RuleTest {
         SessionPseudoClock clock = session.getSessionClock();
 
         HeartBeat hb1 = new HeartBeat();
-        Date hb1Date = Date.from(Instant.ofEpochSecond(clock.getCurrentTime()));
+        Date hb1Date = Date.from(Instant.ofEpochMilli(clock.getCurrentTime()));
         hb1.setTs(hb1Date);
 
         session.insert(hb1);
