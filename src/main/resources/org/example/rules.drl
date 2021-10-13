@@ -16,6 +16,7 @@
 package kie.live;
 
 global java.util.Deque controlSet;
+global java.util.Deque usersNotified;
 
 rule "heartbeat rule"
 no-loop
@@ -25,4 +26,23 @@ when
 then
     System.out.println("Heartbeat not received in 5s after: " +  $ts);
 	controlSet.push($h);
+end
+
+rule "Computer is rebooting too many times"
+no-loop
+when
+    $r1 : SystemRebootEvent($cId : computerId, $uId: userId)
+    $numberOfTimes : Number(this >= 2) from accumulate(
+        $r2 : SystemRebootEvent(this != $r1,
+                                computerId == $cId,
+                                this meets[1h] $r1),
+                                count($r2)
+                                )
+    $u : User(id == $uId, notified == false)
+then
+    System.out.println($u.getUsername() + ", your computer was rebooted " + $numberOfTimes + " times after a reboot" );
+    modify($u) {
+        setNotified(true);
+    }
+	usersNotified.push($u);
 end

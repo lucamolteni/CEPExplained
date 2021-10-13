@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class RuleTest {
 
@@ -80,7 +81,7 @@ public class RuleTest {
         SessionPseudoClock clock = session.getSessionClock();
 
         HeartBeat hb1 = new HeartBeat();
-        Date hb1Date = Date.from(Instant.ofEpochMilli(clock.getCurrentTime()));
+        Date hb1Date = tsFromPseudoClock(clock);
         hb1.setTs(hb1Date);
 
         session.insert(hb1);
@@ -89,5 +90,51 @@ public class RuleTest {
         session.fireAllRules();
 
         assertEquals(hb1, check.pop());
+    }
+
+    @Test
+    public void testSystemReboot() {
+        KieServices kieServices = KieServices.Factory.get();
+        KieContainer kContainer = kieServices.getKieClasspathContainer();
+        KieBase kieBase = kContainer.getKieBase("CEPExplained");
+
+        KieSessionConfiguration conf = KieServices.Factory.get().newKieSessionConfiguration();
+
+        conf.setOption(ClockTypeOption.PSEUDO);
+        KieSession session = kieBase.newKieSession(conf, null);
+
+        Deque<User> usersNotified = new ArrayDeque<>();
+        session.setGlobal("usersNotified", usersNotified);
+
+        Deque<Long> check = new ArrayDeque<>();
+        session.setGlobal("controlSet", check);
+
+        SessionPseudoClock clock = session.getSessionClock();
+
+
+        session.insert(new User(333L, "luca"));
+
+        session.insert(new SystemRebootEvent(tsFromPseudoClock(clock),
+                                             10000L, 1L, 333L));
+
+        clock.advanceTime(20, TimeUnit.MINUTES);
+
+        session.insert(new SystemRebootEvent(tsFromPseudoClock(clock),
+                                             10000L, 1L, 333L));
+
+        clock.advanceTime(10, TimeUnit.MINUTES);
+
+        session.insert(new SystemRebootEvent(tsFromPseudoClock(clock),
+                                             10000L, 1L, 333L));
+
+        session.fireAllRules();
+
+        User userNotified = usersNotified.pop();
+        assertEquals("luca", userNotified.getUsername());
+        assertTrue(userNotified.isNotified());
+    }
+
+    private Date tsFromPseudoClock(SessionPseudoClock clock) {
+        return Date.from(Instant.ofEpochMilli(clock.getCurrentTime()));
     }
 }
