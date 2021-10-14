@@ -24,7 +24,7 @@ when
 	not(HeartBeat( this != $h, this after[0s, 5s] $h))
 then
     System.out.println("Heartbeat not received in 5s after: " +  $ts);
-	controlSet.push($h);
+	controlSet.push($h); //  clear this in production
 end
 
 rule "Computer is rebooting too many times"
@@ -42,5 +42,5 @@ then
     modify($u) {
         setNotified(true);
     }
-	usersNotified.push($u);
+	usersNotified.push($u); // clear this in production
 end
