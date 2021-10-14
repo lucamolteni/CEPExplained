@@ -19,7 +19,6 @@ global java.util.Deque controlSet;
 global java.util.Deque usersNotified;
 
 rule "heartbeat rule"
-no-loop
 when
 	$h : HeartBeat( $ts: ts)
 	not(HeartBeat( this != $h, this after[0s, 5s] $h))
@@ -29,7 +28,6 @@ then
 end
 
 rule "Computer is rebooting too many times"
-no-loop
 when
     $r1 : SystemRebootEvent($cId : computerId, $uId: userId)
     $numberOfTimes : Number(this >= 2) from accumulate(
